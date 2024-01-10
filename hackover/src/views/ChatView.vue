@@ -3,133 +3,114 @@
   <div class="chat" v-if="token">
     <TransitionGroup name="chat-fade" tag="div" class="chats" ref="chatArea">
       <div class="chatarea">
-        <div :class="msg.user" class="message" v-for="msg, index in messages">
+        <div :class="msg.user" class="message" v-for="(msg, index) in messages">
           <p>{{ msg.message }}</p>
         </div>
       </div>
     </TransitionGroup>
 
     <div class="text-input">
-      <div class="clear" @click="clearMessages"><ion-icon name="trash-outline"></ion-icon></div>
-      <input type="text" ref="inputRef" placeholder="Start Chatting..." v-model="message" @keyup.enter="addMessage"
-        :disabled="messageRunning">
-      <div class="send" @click="addMessage"><ion-icon name="send-outline"></ion-icon></div>
+      <div class="clear" @click="clearMessages">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <input
+        type="text"
+        ref="inputRef"
+        placeholder="Start Chatting..."
+        v-model="message"
+        @keyup.enter="addMessage"
+        :disabled="messageRunning"
+      />
+      <div class="send" @click="addMessage">
+        <ion-icon name="send-outline"></ion-icon>
+      </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useUserStore } from '../stores/counter';
-import { useRouter } from 'vue-router';
-import axios from 'axios'
-import SideBar from '../components/SideBar.vue';
-import { v4 } from 'uuid'
+import { ref, onMounted } from "vue";
+import { useUserStore } from "../stores/counter";
+import { useRouter } from "vue-router";
+import axios from "axios";
+import SideBar from "../components/SideBar.vue";
+import { v4 } from "uuid";
 
-const { user, token } = useUserStore()
+const { user, token } = useUserStore();
 const router = useRouter();
-const apiUrl = 'http://192.168.137.55:8000/chat'
-const messages = ref([])
-const message = ref('')
-const messageRunning = ref(false)
-const inputRef = ref(null)
-const chatid = ref()
+const apiUrl = "http://localhost:8000/chat";
+const messages = ref([]);
+const message = ref("");
+const messageRunning = ref(false);
+const inputRef = ref(null);
+const chatid = ref();
 
 const history = ref({
-  "internal": [
-    [
-      "<|BEGIN-VISIBLE-CHAT|>",
-      "How can I help you today?"
-    ],
-
-  ],
-  "visible": [
-    [
-      "",
-      "How can I help you today?"
-    ],
-
-  ]
-})
-
-
-
+  internal: [["<|BEGIN-VISIBLE-CHAT|>", "How can I help you today?"]],
+  visible: [["", "How can I help you today?"]],
+});
 
 const addMessage = () => {
-  if (!message.value || messageRunning.value) return
+  if (!message.value || messageRunning.value) return;
   let msg = {
-    user: 'user',
+    user: "user",
     message: message.value,
-    timestamp: Date.now()
-  }
-  messages.value.push(msg)
-  message.value = ''
-  messageRunning.value = true
+    timestamp: Date.now(),
+  };
+  messages.value.push(msg);
+  message.value = "";
+  messageRunning.value = true;
 
   let postData = {
-    "user_input": msg.message,
-    "history": history.value,
-    "email": user.user_data.email,
-    "chatid": chatid.value
-  }
+    user_input: msg.message,
+    history: history.value,
+    email: user.user_data.email,
+    chatid: chatid.value,
+  };
 
-  axios.post(apiUrl, postData)
-    .then(res => {
-      let { history: his, reply } = res.data
+  axios
+    .post(apiUrl, postData)
+    .then((res) => {
+      let { history: his, reply } = res.data;
       let msg = {
         message: reply,
-        user: 'bot',
-        timestamp: Date.now()
-      }
+        user: "bot",
+        timestamp: Date.now(),
+      };
 
-
-      messages.value.push(msg)
-      history.value = his
+      messages.value.push(msg);
+      history.value = his;
       console.log(history.value);
-      messageRunning.value = false
-      inputRef.value.focus()
+      messageRunning.value = false;
+      inputRef.value.focus();
     })
-    .catch(err => {
-      console.log(err)
-      inputRef.value.focus()
-    })
+    .catch((err) => {
+      console.log(err);
+      inputRef.value.focus();
+    });
 
   // messageRunning.value = false
   // inputRef.value.focus()
-}
+};
 
 const clearMessages = () => {
-  messages.value = []
+  messages.value = [];
   history.value = {
-    "internal": [
-      [
-        "<|BEGIN-VISIBLE-CHAT|>",
-        "How can I help you today?"
-      ],
-
-    ],
-    "visible": [
-      [
-        "",
-        "How can I help you today?"
-      ],
-
-    ]
-  }
-  chatid.value = v4()
-}
+    internal: [["<|BEGIN-VISIBLE-CHAT|>", "How can I help you today?"]],
+    visible: [["", "How can I help you today?"]],
+  };
+  chatid.value = v4();
+};
 
 onMounted(() => {
   if (!token) {
     console.log("no user");
-    router.push('/login')
+    router.push("/login");
   } else {
-    inputRef.value.focus()
-    chatid.value = v4()
+    inputRef.value.focus();
+    chatid.value = v4();
   }
-})
-
+});
 </script>
 
 <style lang="scss" scoped>
@@ -154,7 +135,6 @@ onMounted(() => {
     border-radius: 20px;
     flex-direction: column-reverse;
 
-
     &::-webkit-scrollbar {
       display: none;
     }
@@ -165,13 +145,10 @@ onMounted(() => {
     /* IE and Edge */
     scrollbar-width: none;
     /* Firefox */
-
-
   }
 
   .chatarea {
     * {
-
       transition: 0.3s;
     }
 
@@ -196,7 +173,6 @@ onMounted(() => {
       min-height: 50px;
       border-bottom: 3px solid #8844ff;
 
-
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -211,7 +187,6 @@ onMounted(() => {
         font-size: 16px;
         color: #141414;
       }
-
     }
 
     .user {
@@ -223,9 +198,7 @@ onMounted(() => {
       // border-bottom: 3px solid #ff44ff;
       margin-right: auto;
       border-radius: 0px 15px 15px 15px;
-
     }
-
   }
 
   .text-input {
